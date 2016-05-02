@@ -55,16 +55,15 @@ configurations {
 
 dependencies {
 	deploy 'org.apache.maven.wagon:wagon-ssh:2.10'
-	deobfCompile 'com.unascribed:blockrenderer:0.3.2'
 	compile fileTree(dir: 'libs', include: '*.jar')
 }
 
 minecraft {
 	version = config.forge
 	mappings = config.mappings
-	
+
 	runDir = "minecraft"
-	
+
 	replaceIn 'src/main/java/com/unascribed/correlatedpotentialistics/CoPo.java'
 	replace '@VERSION@', project.version
 }
@@ -77,11 +76,11 @@ processResources {
 	// replace stuff in mcmod.info, nothing else
 	from(sourceSets.main.resources.srcDirs) {
 		include 'mcmod.info'
-				
+
 		// replace version and mcversion
 		expand 'version':project.version, 'mcversion':project.minecraft.version
 	}
-		
+
 	// copy everything else, thats not the mcmod.info
 	from(sourceSets.main.resources.srcDirs) {
 		exclude 'mcmod.info'
@@ -105,4 +104,22 @@ uploadArchives {
 			authentication(userName: priv.scpUser, privateKey: file(priv.scpKey))
 		}
 	}
+}
+
+/**
+ * Generate classpath files for use with atom-autocomplete-java
+ */
+task atom << {
+	File f = file(".classpath");
+	StringBuilder classpath = new StringBuilder();
+	def addToClasspath = {
+		classpath.append(it.getAbsolutePath());
+		classpath.append(File.pathSeparator);
+	};
+	configurations.compile.files.each addToClasspath
+	configurations.compile.files.each addToClasspath
+	configurations.forgeGradleMc.files.each addToClasspath
+	configurations.forgeGradleMcDeps.files.each addToClasspath
+	configurations.provided.files.each addToClasspath
+	f.text = classpath.toString();
 }
